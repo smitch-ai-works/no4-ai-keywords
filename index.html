@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI プロンプト記号 完全ガイド</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #f5f0e8;
+    --bg2:     #ede6d6;
+    --surface: #faf7f2;
+    --border:  #ddd5c0;
+    --text:    #2c2416;
+    --muted:   #7a6e5a;
+
+    --c01:#7c5c2e; --c02:#3d7a47; --c03:#c07030; --c04:#5b7abf;
+    --c05:#9b4f8a; --c06:#b8433a; --c07:#2e8a7c; --c08:#6d5b2a;
+    --c09:#4a6ea8; --c10:#8a3060; --c11:#3a7a4a; --c12:#c05520;
+    --c13:#5060a0; --c14:#7a7a20; --c15:#2e7a60; --c16:#a06030;
+    --c17:#c04070; --c18:#3070a0; --c19:#806020; --c20:#504090;
+    --c21:#308040; --c22:#a04050; --c23:#604080; --c24:#3a5a30;
+    --c25:#3a7050; --c26:#804020; --c27:#205070; --c28:#607030;
+    --c29:#702050; --c30:#306050;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(180,150,100,.13) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(100,140,180,.10) 0%, transparent 55%);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #2c2416 0%, #4a3820 60%, #2c3a30 100%);
+    color: #f5f0e8;
+    text-align: center;
+    padding: 56px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(
+      45deg, transparent, transparent 24px,
+      rgba(255,255,255,.03) 24px, rgba(255,255,255,.03) 25px);
+  }
+  .header-badge {
+    display:inline-block;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:999px;
+    font-size:.72rem; letter-spacing:.15em;
+    padding:4px 16px; margin-bottom:20px;
+    text-transform:uppercase; position:relative;
+  }
+  header h1 {
+    font-family:'Noto Serif JP',serif;
+    font-size:clamp(1.6rem,5vw,2.8rem);
+    font-weight:700; line-height:1.3; margin-bottom:12px; position:relative;
+  }
+  header h1 span { color:#e8c870; }
+  header p {
+    font-size:clamp(.85rem,2.5vw,1rem);
+    opacity:.75; max-width:560px; margin:0 auto; position:relative;
+  }
+  .header-count {
+    display:inline-flex; align-items:center; gap:8px;
+    margin-top:28px;
+    background:rgba(255,255,255,.1);
+    border-radius:8px; padding:10px 24px; font-size:.9rem; position:relative;
+  }
+  .header-count strong { color:#e8c870; font-size:1.4rem; }
+
+  /* ── GRID ── */
+  .grid-wrapper { max-width:1200px; margin:0 auto; padding:48px 20px 80px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media(max-width:900px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:580px){
+    .grid{ grid-template-columns:1fr; gap:16px; }
+    .grid-wrapper{ padding:28px 14px 60px; }
+  }
+
+  /* ── CARD ── */
+  .card {
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 2px 12px rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.05);
+    transition:transform .2s ease, box-shadow .2s ease;
+    display:flex; flex-direction:column;
+  }
+  .card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 10px 30px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.07);
+  }
+  .card-head {
+    padding:18px 20px 16px;
+    display:flex; align-items:center; gap:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .symbol-badge {
+    width:52px; height:52px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.05rem; font-weight:700; color:#fff;
+    flex-shrink:0; text-align:center; padding:4px; line-height:1.15;
+  }
+  .card-num { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:2px; }
+  .card-name { font-family:'Noto Serif JP',serif; font-size:1.05rem; font-weight:700; color:var(--text); }
+
+  .card-body { padding:16px 20px 20px; flex:1; display:flex; flex-direction:column; gap:14px; }
+  .role-label { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  .role-text { font-size:.88rem; line-height:1.72; color:var(--text); white-space:pre-line; }
+
+  .usage-tags { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .usage-tag {
+    font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:700;
+    padding:3px 10px; border-radius:6px;
+    border:1.5px solid var(--accent,#888); color:var(--accent,#888);
+  }
+  .usage-tag-label { font-size:.65rem; color:var(--muted); }
+
+  .example-box {
+    background:var(--bg2); border-radius:10px; padding:12px 14px;
+    border-left:3px solid var(--accent,#888);
+  }
+  .example-label { font-size:.65rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .example-code {
+    font-family:'JetBrains Mono',monospace; font-size:.78rem;
+    line-height:1.65; color:var(--text); white-space:pre-wrap; word-break:break-all;
+  }
+  .example-code .hl {
+    color:var(--accent,#555); font-weight:700;
+    background:rgba(0,0,0,.05); border-radius:3px; padding:0 2px;
+  }
+  .effect-chip {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:.72rem; font-weight:700;
+    padding:5px 11px; border-radius:999px;
+    background:rgba(0,0,0,.06); color:var(--muted); align-self:flex-start;
+  }
+  .effect-chip::before { content:'✦'; font-size:.6rem; }
+
+  footer {
+    background:#2c2416; color:rgba(245,240,232,.55);
+    text-align:center; padding:24px;
+    font-size:.78rem; letter-spacing:.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge">Prompt Engineering Reference</div>
+  <h1>AI プロンプト<span>記号</span>完全ガイド</h1>
+  <p>AIへの指示をもっとかしこく伝えるための記号と使い方 30選</p>
+  <div class="header-count"><strong>30</strong> 種類の記号を網羅</div>
+</header>
+
+<div class="grid-wrapper">
+<div class="grid" id="cards"></div>
+</div>
+
+<footer>AI プロンプト記号 完全ガイド — 30 symbols for precise communication</footer>
+
+<script>
+const symbols = [
+  {
+    sym:"#", name:"シャープ", color:"var(--c01)",
+    role:"#の数で見出しの大きさが変わる。「# 大見出し」「## 中見出し」のように、長い指示を章立てするときに使う。AIが「ここからこの話題が始まる」と判断しやすくなり、抜け漏れが減る。",
+    usages:[{code:"# 大見出し",label:"大きなまとまり"},{code:"## 中見出し",label:"その中の小分け"}],
+    example:"# 目的\nブログ記事を書いてください。\n\n## 条件\n- 文字数：800字以内\n- トーン：カジュアル",
+    hl:["#","##"], effect:"指示の構造が一目でわかる"
+  },
+  {
+    sym:"-", name:"ハイフン", color:"var(--c02)",
+    role:"行の先頭に「- 」を付けると箇条書きになる。やってほしいことを1つずつリストにすることで、AIが上から順番に処理してくれる。まとめて文章で書くより抜け漏れが格段に減る。",
+    usages:[{code:"- 条件1",label:"リストの1項目"}],
+    example:"沖縄旅行の計画を立てて。\n- 航空券のおすすめを出して\n- 宿泊先のおすすめを出して\n- 観光スポットを3つ提案して",
+    hl:["-"], effect:"漏れなく順番に処理してくれる"
+  },
+  {
+    sym:"* / **", name:"アスタリスク", color:"var(--c03)",
+    role:"使い方が2つある。\n① 行頭に「* 」→ 箇条書き（ハイフンと同じ）\n② 「**○○**」と2つで単語を囲む → 太字になり「ここが最重要」とAIが認識する。絶対に守ってほしい条件に使うと効果的。",
+    usages:[{code:"* 項目",label:"箇条書き（1つ）"},{code:"**重要語句**",label:"太字・最重要（2つで囲む）"}],
+    example:"文章を書いてください。\n**必ず**3行以内にまとめ、\n**専門用語は使わない**こと。\n\n* 例文も1つ付けて",
+    hl:["**","* "], effect:"絶対に守ってほしい条件を強調できる"
+  },
+  {
+    sym:"( )", name:"丸カッコ", color:"var(--c04)",
+    role:"メインの指示を邪魔しないように、補足情報を添えるときに使う。対象者・トーン・文字数など付け足しの条件を丸カッコの中に書くと、指示がごちゃごちゃせずすっきり読みやすくなる。",
+    usages:[{code:"(補足情報)",label:"前提や条件を補足"}],
+    example:"商品紹介文を書いて\n（対象：50代女性）\n（トーン：上品で温かみのある文体）\n（文字数：200字）",
+    hl:["（","）"], effect:"指示がごちゃごちゃせず読みやすい"
+  },
+  {
+    sym:"[ ]", name:"角カッコ", color:"var(--c05)",
+    role:"「あとで書き換える場所」を示すときに使う。[商品名]や[ターゲット]のように書くことで、テンプレートとして作っておいて後から差し替えやすくなる。同じ指示を使い回したいときに便利。",
+    usages:[{code:"[書き換える部分]",label:"差し替え場所の目印"}],
+    example:"[商品名]の紹介文を書いて。\nターゲット：[対象者]\n文体：[トーン]\n文字数：[字数]字以内",
+    hl:["[","]"], effect:"テンプレ化して使い回しが楽になる"
+  },
+  {
+    sym:`" "`, name:"ダブルクォーテーション", color:"var(--c06)",
+    role:"「この文章を素材として使って」と渡すときに囲む。AIが指示の文と、参照してほしい素材文を混同しないようにできる。要約・翻訳・添削をお願いするときに、対象の文章を明確に区別して渡せる。",
+    usages:[{code:`"参照したい文章"`,label:"素材・引用の範囲を囲む"}],
+    example:`以下の文を敬語に直して。\n\n"明日の会議、参加できる？\n資料も準備してね。"`,
+    hl:[`"`], effect:"指示と素材が混ざらず正確に処理される"
+  },
+  {
+    sym:":", name:"コロン", color:"var(--c07)",
+    role:"「項目名：内容」という形で情報を整理して渡すときに使う。タイトル・ジャンル・文字数など複数の設定をセットで渡すと、AIが各項目を個別にきちんと認識してくれる。",
+    usages:[{code:"項目名：内容",label:"項目と内容をセットにする"}],
+    example:"タイトル：AIと働く未来\nジャンル：コラム\n文体：やわらかめ\n文字数：600字",
+    hl:["："], effect:"設定がひと目でわかり解釈がブレない"
+  },
+  {
+    sym:"---", name:"3連ハイフン", color:"var(--c08)",
+    role:"「ここで役割が変わります」と区切るための仕切り線。指示文と、AIに読ませたい素材文を完全に分けたいときに使う。混在すると誤読の原因になるので、長い指示ほど効果的。",
+    usages:[{code:"---",label:"ブロック同士を完全に分ける"}],
+    example:"以下のレビューを要約して。\n\n---\n「このイヤホンは音質が良く、\nノイキャンも強力です。\nただし装着感がやや硬めです。」\n---",
+    hl:["---"], effect:"指示と素材の混在を防ぎ誤読ゼロに"
+  },
+  {
+    sym:"=", name:"イコール", color:"var(--c09)",
+    role:"「この値に固定してね」と設定を決めるときに使う。出力言語・文体・長さなどを「項目=値」の形で書くと、何度使っても同じ条件が保たれやすくなる。",
+    usages:[{code:"項目=値",label:"設定を固定する"}],
+    example:"出力言語=日本語\n文体=丁寧語\n長さ=300字以内\n\n上記の設定で自己紹介文を書いて。",
+    hl:["="], effect:"毎回同じ条件で安定した出力になる"
+  },
+  {
+    sym:">", name:"大なり記号", color:"var(--c10)",
+    role:"「これは参考にしてほしい文章です」と引用を示すときに使う。行頭に「> 」を付けるだけで引用ブロックとしてAIに認識されやすい。参考資料を渡す感覚で使えて便利。",
+    usages:[{code:"> 引用テキスト",label:"参考・引用の明示"}],
+    example:"以下の文を踏まえて反論を書いて。\n\n> AIは人間の仕事を\n> 奪う存在である。",
+    hl:[">"], effect:"参考資料を明示して文脈を正確に伝える"
+  },
+  {
+    sym:";", name:"セミコロン", color:"var(--c11)",
+    role:"1行の中で複数の条件を区切りたいときに使う。「条件A; 条件B; 条件C」のようにつなげることで、改行せずにコンパクトにまとめられる。整理された見た目になり、人間にとっても読みやすい。",
+    usages:[{code:"条件A; 条件B",label:"1行で複数条件を区切る"}],
+    example:"商品名を考えて。\n条件：短い; 覚えやすい; 英語でもOK; 5案出して",
+    hl:[";"], effect:"1行に複数条件をコンパクトに収められる"
+  },
+  {
+    sym:"{ }", name:"波カッコ", color:"var(--c12)",
+    role:"まとまった情報を構造的に渡すときに使う。名前と値のペアで情報を整理することで、AIが各項目を正確に読み取って処理してくれる。テンプレートの変数として「{名前}」のように使う方法も広く使われている。",
+    usages:[{code:'{"キー": "値"}',label:"データをまとめて渡す"},{code:"{変数名}",label:"テンプレートの差し込み場所"}],
+    example:'以下のデータを元に紹介文を書いて。\n{\n  "name": "田中 花子",\n  "job": "デザイナー",\n  "hobby": "旅行"\n}',
+    hl:["{","}"], effect:"複数の情報をまとめてきれいに渡せる"
+  },
+  {
+    sym:"` `", name:"バッククォート", color:"var(--c13)",
+    role:"コードや特定の文字列を「これはコードです」と区別するときに囲む。AIがコードを普通の文章として変換してしまうのを防げる。3つ並べた「```」で複数行のコードブロックも作れる。",
+    usages:[{code:"`コードや文字列`",label:"コード・文字列の範囲を示す"},{code:"```\nコードブロック\n```",label:"複数行のコード"}],
+    example:"以下のコードのバグを直して。\n\n`print(Hello World)`\n\nエラー内容も説明して。",
+    hl:["`"], effect:"コードと普通の文章を混同させない"
+  },
+  {
+    sym:"|", name:"バーティカルバー", color:"var(--c14)",
+    role:"表（テーブル）を作るときに使う。縦棒で列を区切ることでMarkdown形式の表になる。比較や一覧をAIに表として出力させたいときに、どのような形式を期待しているか指定するのに使える。",
+    usages:[{code:"| 列1 | 列2 |",label:"表の列を区切る"}],
+    example:"以下の形式で商品を比較して。\n\n| 商品名 | 価格 | 特徴 |\n|--------|------|------|\n（3商品を入れて）",
+    hl:["|"], effect:"情報を表形式で整理して受け取れる"
+  },
+  {
+    sym:"/", name:"スラッシュ", color:"var(--c15)",
+    role:"「どちらか選んで」という選択肢を並べたり、カテゴリの階層を示すときに使う。Yes/No、ビジネス/マーケティングのようにスラッシュで区切るだけで選択肢がわかりやすく伝わる。",
+    usages:[{code:"A / B",label:"どちらかを選ぶ選択肢"},{code:"カテゴリ/サブ",label:"階層の区切り"}],
+    example:"回答はYes/Noで答えてください。\n\nビジネス/マーケティング/SNS\nに関する投稿案を5つ出して。",
+    hl:["/"], effect:"選択肢や階層をひと目で整理できる"
+  },
+  {
+    sym:"_ / __", name:"アンダースコア", color:"var(--c16)",
+    role:"「_○○_」と1つで囲むと斜体（イタリック）になる。「__○○__」と2つで囲むと太字になり、**と同じ効果。また、単語と単語の間をつなぐ変数名の書き方（user_name）にも使われる。",
+    usages:[{code:"_テキスト_",label:"斜体（1つで囲む）"},{code:"__テキスト__",label:"太字（2つで囲む）"},{code:"user_name",label:"変数名のつなぎ"}],
+    example:"以下の変数を使って紹介文を作って。\n\nuser_name=山田太郎\nuser_age=32\nuser_job=__エンジニア__",
+    hl:["__","_"], effect:"斜体・太字・変数名に使い分けできる"
+  },
+  {
+    sym:"+", name:"プラス", color:"var(--c17)",
+    role:"「これも追加でやって」と指示に要素を足すときに使う。箇条書きと組み合わせて、追加でお願いしたいことを「+ ○○も付けて」のようにシンプルに書ける。",
+    usages:[{code:"+ 追加の指示",label:"やることを追加する"}],
+    example:"ブログ記事を作って。\n内容：AI活用術\n+ SEO対策も含める\n+ SNSシェア用の要約も付ける\n+ 画像説明文も追加して",
+    hl:["+"], effect:"追加要素を1度にまとめてお願いできる"
+  },
+  {
+    sym:"&", name:"アンパサンド", color:"var(--c18)",
+    role:"「どちらかではなく、両方同時に満たして」というAND条件を書くときに使う。ターゲットや条件を複数絞り込みたいときに、わかりやすく並べられる。",
+    usages:[{code:"条件A & 条件B",label:"両方満たすAND条件"}],
+    example:"ターゲット：20代 & 女性 & 健康意識高め\n\n上記を**すべて満たす**読者向けに\n商品紹介を書いて。",
+    hl:["&"], effect:"絞り込み条件が明確になり精度が上がる"
+  },
+  {
+    sym:"?", name:"クエスチョン", color:"var(--c19)",
+    role:"「まず確認してから進めて」という流れを作るときに使う。いきなり回答させず、事前にAIに確認を促したいときに、確認事項をリストで書いて使う。的外れな回答を事前に防げる。",
+    usages:[{code:"確認したいこと？",label:"進める前に確認させる"}],
+    example:"提案を始める前に以下を確認して。\n- 予算は決まっている？\n- 納期の希望はある？\n- 参考デザインはある？\n確認が取れてから提案を進めて。",
+    hl:["？"], effect:"的外れな回答を事前に防げる"
+  },
+  {
+    sym:"1. 2. 3.", name:"番号リスト", color:"var(--c20)",
+    role:"「順番が大事な手順」を伝えるときに使う。ハイフンの箇条書きと違い、数字を付けることで「この順番でやってほしい」という意図が明確になる。手順・ステップ・優先順位を伝えるときに特に効果的。",
+    usages:[{code:"1. 手順A\n2. 手順B",label:"順番が重要な手順リスト"}],
+    example:"以下のステップで添削して。\n\n1. まず誤字・脱字を直す\n2. 次に文章の流れを整える\n3. 最後に敬語を統一する",
+    hl:["1.","2.","3."], effect:"手順の順番が明確に伝わる"
+  },
+  {
+    sym:'"""', name:"三重引用符", color:"var(--c21)",
+    role:"長い文章を丸ごと「素材」として渡すときに、前後を「\"\"\"」で囲む。---（3連ハイフン）と似た使い方だが、複数の素材を渡すときに「\"\"\"素材A\"\"\"」「\"\"\"素材B\"\"\"」と名前を付けて区別できるのが強み。",
+    usages:[{code:'"""長い素材テキスト"""',label:"長文素材の範囲を囲む"}],
+    example:'以下の2つの文章を比較して。\n\n"""文章A"""\nAIは生産性を大幅に向上させる。\n"""\n\n"""文章B"""\nAIには限界もあり慎重な活用が必要。\n"""',
+    hl:['"""'], effect:"長文素材を名前付きで区別して渡せる"
+  },
+  {
+    sym:"@", name:"アットマーク", color:"var(--c22)",
+    role:"「○○として振る舞って」と役割を指定するときに使う。@プロのコピーライターのように書くと、AIがその役割になりきって専門的な視点で答えてくれる。記号がなくても同じ意味は伝わるが、役割指定が視覚的にわかりやすくなる。",
+    usages:[{code:"@役割名",label:"AIに役割・キャラを与える"}],
+    example:"@プロのコピーライター\nとして振る舞ってください。\n\n新商品のキャッチコピーを\n5案考えてください。",
+    hl:["@"], effect:"専門家の視点で答えてもらえる"
+  },
+  {
+    sym:"※", name:"米印（コメジルシ）", color:"var(--c23)",
+    role:"注意書きや補足を「特に気をつけてほしいこと」として添えるときに使う。日本語のプロンプトで自然に馴染む記号で、「※〇〇には触れないで」「※必ず日本語で」のように、守ってほしい例外条件を書き添えるのに便利。",
+    usages:[{code:"※ 注意事項",label:"守ってほしい例外・補足"}],
+    example:"旅行プランを提案して。\n\n※ 予算は5万円以内で\n※ 子連れ向けのプランにして\n※ 移動は電車のみで考えて",
+    hl:["※"], effect:"守ってほしい注意事項を目立たせられる"
+  },
+  {
+    sym:"→", name:"矢印", color:"var(--c24)",
+    role:"「入力→出力」「Before→After」のように、変換・対応・流れを示すときに使う。「こういう文を入れたら、こういう形で返して」という出力形式の例を見せるときにとても使いやすい。",
+    usages:[{code:"入力 → 出力",label:"変換・対応の流れを示す"},{code:"Before → After",label:"改善のBefore/After"}],
+    example:"以下の形式で敬語に直して。\n\n「ちょっと待って」→「少々お待ちください」\n「わかった」→「承知しました」\n\nでは「なるほど」を直して。",
+    hl:["→"], effect:"入出力の対応が一目でわかる"
+  },
+  {
+    sym:"~", name:"チルダ", color:"var(--c25)",
+    role:"「だいたいこのくらい」という幅のある指定をするときに使う。「~500字」「~ゆるめ」のように書くと、AIが多少融通を利かせて対応してくれる。厳密に指定しすぎると堅くなるときに、あえて使うと便利。",
+    usages:[{code:"~500字",label:"おおよその範囲の指定"}],
+    example:"文字数：~500字\n（多少前後してもOK）\n\nトーン：~ゆるめ のカジュアルな文体\nで記事を書いて。",
+    hl:["~"], effect:"厳密すぎない柔軟な指定ができる"
+  },
+  {
+    sym:",", name:"カンマ", color:"var(--c26)",
+    role:"複数のキーワードや要素を並べて一度に渡すときに使う。箇条書きにするほどでもない短い要素を、カンマで区切って1行にまとめて渡せる。",
+    usages:[{code:"A, B, C",label:"複数要素をカンマ区切りで並べる"}],
+    example:"キーワード：AI, 生産性, 自動化, 未来\n\n上記を自然に盛り込んだ\n記事の導入文を書いて。",
+    hl:[","], effect:"キーワードをまとめて素早く渡せる"
+  },
+  {
+    sym:"< >", name:"アングルブラケット（タグ）", color:"var(--c27)",
+    role:"HTMLやXMLのタグのように、指示のかたまりを名前付きで囲むときに使う。「<指示>〜</指示>」「<素材>〜</素材>」のように役割ごとに分けると、AIがそれぞれのブロックをとても読み取りやすくなる。Anthropic（Claudeの開発元）も公式に推奨している方法。",
+    usages:[{code:"<役割>内容</役割>",label:"ブロックに名前をつけて囲む"}],
+    example:"<指示>\n以下の文を要約してください。\n</指示>\n\n<素材>\n「AIは今や多くの職場に…」\n</素材>",
+    hl:["<",">"], effect:"役割ごとにブロックが明確に分かれる"
+  },
+  {
+    sym:".", name:"ピリオド（句点）", color:"var(--c28)",
+    role:"文の終わりをはっきりさせる記号。指示を書くとき、文末をきちんと句点で終わらせることで「ここで1つの指示が終わった」とAIが判断しやすくなる。複数の指示を続けて書くときほど効果が出る。",
+    usages:[{code:"指示文。次の指示。",label:"文の区切りを明確にする"}],
+    example:"これは紹介文です。敬語で書いてください。文末は「です・ます」で統一してください。300字以内にまとめてください。",
+    hl:["。"], effect:"指示の切れ目がはっきりして誤読が減る"
+  },
+  {
+    sym:"!", name:"感嘆符", color:"var(--c29)",
+    role:"「絶対にやってはいけないこと」「必ず守ってほしいこと」を強く伝えるときに使う。「絶対に！」「必ず！」のように感嘆符を添えると、AIが重要な制約として認識しやすくなる。**（アスタリスク2つ）と組み合わせるとさらに強調できる。",
+    usages:[{code:"絶対に○○しない！",label:"禁止・絶対条件を強調"},{code:"**必ず！**",label:"最強の強調（アスタリスクと組み合わせ）"}],
+    example:"レシピを考えて。\n\n**絶対に！** ナッツ類を使わないで。\nアレルギー対応が必須！\n\n※ 卵・乳製品はOK",
+    hl:["！","!"], effect:"禁止・必須条件を見落とさせない"
+  },
+  {
+    sym:"' '", name:"シングルクォート", color:"var(--c30)",
+    role:"特定のキーワードや固有名詞を「この言葉をそのまま扱って」と指定するときに使う。ダブルクォーテーションより軽い使い方で、文の中で特定の単語だけを目立たせたいときに使いやすい。",
+    usages:[{code:"'キーワード'",label:"特定の言葉をそのまま扱う"},{code:"'固有名詞'",label:"固有名詞・専門用語の指定"}],
+    example:"以下の文章中の'サステナビリティ'と\n'SDGs'という言葉は変えずに、\n残りの文章をやさしい言葉に\n書き直してください。",
+    hl:["'"], effect:"変えてほしくない言葉を明示できる"
+  },
+];
+
+const grid = document.getElementById('cards');
+symbols.forEach((s, i) => {
+  const num = String(i+1).padStart(2,'0');
+
+  // escape then highlight
+  let ex = s.example
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s.hl.forEach(w => {
+    const esc = w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    ex = ex.replace(new RegExp(esc,'g'), `<span class="hl">${w}</span>`);
+  });
+
+  const tags = s.usages.map(u =>
+    `<span class="usage-tag">${u.code}</span><span class="usage-tag-label">${u.label}</span>`
+  ).join('');
+
+  grid.innerHTML += `
+    <div class="card" style="--accent:${s.color}">
+      <div class="card-head">
+        <div class="symbol-badge" style="background:${s.color}">${s.sym}</div>
+        <div class="card-title-group">
+          <div class="card-num">No.${num}</div>
+          <div class="card-name">${s.name}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div>
+          <div class="role-label">どんな記号？</div>
+          <div class="role-text">${s.role}</div>
+        </div>
+        <div class="usage-tags">${tags}</div>
+        <div class="example-box" style="border-color:${s.color}">
+          <div class="example-label">使用例</div>
+          <div class="example-code">${ex}</div>
+        </div>
+        <div class="effect-chip">${s.effect}</div>
+      </div>
+    </div>`;
+});
+</script>
+</body>
+</html>
